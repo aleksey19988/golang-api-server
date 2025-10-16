@@ -7,28 +7,29 @@ import (
 )
 
 func UsersHandler(w http.ResponseWriter, req *http.Request, s *service.UserService) {
-	if req.Method != http.MethodGet {
+	w.Header().Set("Content-Type", "application/json")
+	if req.Method == http.MethodPost {
+		createUserHandler(w, req, s)
+	} else if req.Method == http.MethodGet {
+		users := s.GetUsers()
+		usersJson, err := json.Marshal(users)
+
+		if err != nil {
+			writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeSuccessResponse(w, string(usersJson), http.StatusOK)
+	} else {
 		writeErrorResponse(w, "Метод не разрешён", http.StatusMethodNotAllowed)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-
-	users := s.GetUsers()
-	usersJson, err := json.Marshal(users)
-
-	if err != nil {
-		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	writeSuccessResponse(w, string(usersJson), http.StatusOK)
 }
 
 func UserHandler(w http.ResponseWriter, req *http.Request, s *service.UserService) {
+	w.Header().Set("Content-Type", "application/json")
 	switch req.Method {
 	case http.MethodGet:
 		getUserHandler(w, req, s)
-	case http.MethodPost:
-		createUserHandler(w, req, s)
 	case http.MethodPatch:
 		updateUserHandler(w, req, s)
 	case http.MethodDelete:
@@ -60,22 +61,22 @@ func getUserHandler(w http.ResponseWriter, req *http.Request, s *service.UserSer
 func createUserHandler(w http.ResponseWriter, req *http.Request, s *service.UserService) {
 	userData, err := parseUserData(req)
 	if err != nil {
-		writeErrorResponse(w, "Ошибка при проверке данных пользователя: "+err.Error(), http.StatusInternalServerError)
+		writeErrorResponse(w, "Ошибка при проверке данных пользователя: "+err.Error(), GetStatusCodeByError(err))
 		return
 	}
 	user, err := s.GetUserByName(userData.Name)
 	if err == nil {
-		writeErrorResponse(w, "Пользователь с именем '"+user.Name+"' уже существует", http.StatusBadRequest)
+		writeErrorResponse(w, "Пользователь с именем '"+user.Name+"' уже существует", GetStatusCodeByError(err))
 		return
 	}
 	user, err = s.CreateUser(userData.Name, userData.Age)
 	if err != nil {
-		writeErrorResponse(w, err.Error(), http.StatusBadRequest)
+		writeErrorResponse(w, err.Error(), GetStatusCodeByError(err))
 		return
 	}
 	userJSON, err := json.Marshal(user)
 	if err != nil {
-		writeErrorResponse(w, "Ошибка при получении данных созданного пользователя", http.StatusInternalServerError)
+		writeErrorResponse(w, "Ошибка при получении данных созданного пользователя", GetStatusCodeByError(err))
 		return
 	}
 	writeSuccessResponse(w, string(userJSON), http.StatusCreated)
@@ -84,11 +85,11 @@ func createUserHandler(w http.ResponseWriter, req *http.Request, s *service.User
 func updateUserHandler(w http.ResponseWriter, req *http.Request, s *service.UserService) {
 	ID, err := GetUserIDFromUrl(req.URL.Path)
 	if err != nil {
-		writeErrorResponse(w, err.Error(), http.StatusBadRequest)
+		writeErrorResponse(w, err.Error(), GetStatusCodeByError(err))
 	}
 	user, err := s.GetUserByID(ID)
 	if err != nil {
-		writeErrorResponse(w, "Ошибка при поиске пользователя:"+err.Error(), http.StatusNotFound)
+		writeErrorResponse(w, "Ошибка при поиске пользователя:"+err.Error(), GetStatusCodeByError(err))
 		return
 	}
 	userData, err := parseUserData(req)

@@ -3,6 +3,7 @@ package http
 import (
 	"api_server/internal/domain"
 	"api_server/internal/service"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -12,25 +13,21 @@ import (
 
 func parseUserData(req *http.Request) (domain.User, error) {
 	user := domain.User{}
+	err := json.NewDecoder(req.Body).Decode(&user)
 
-	name := req.FormValue("name")
-	if name == "" {
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	if user.Name == "" {
 		return user, errors.New("Не передано имя пользователя")
 	}
 
-	age := req.FormValue("age")
-	if age == "" {
+	if user.Age == 0 {
 		return user, errors.New("Не передан возраст пользователя")
+	} else if user.Age < 14 {
+		return user, service.ErrInvalidAge
 	}
-
-	user.Name = name
-
-	userAge, err := strconv.Atoi(age)
-	if err != nil {
-		return user, errors.New("Ошибка при преобразовании возраста пользователя")
-	}
-
-	user.Age = userAge
 
 	return user, nil
 }
