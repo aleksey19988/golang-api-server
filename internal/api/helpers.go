@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"api_server/internal/domain"

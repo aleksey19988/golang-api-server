@@ -1,7 +1,7 @@
 package main
 
 import (
-	localhttp "api_server/internal/http"
+	"api_server/internal/api"
 	"api_server/internal/repository/memory"
 	"api_server/internal/service"
 	"log"
@@ -10,12 +10,12 @@ import (
 
 func NewRouter(userService *service.UserService) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/ping", localhttp.PingHandler)
+	mux.HandleFunc("/ping", api.PingHandler)
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		localhttp.UsersHandler(w, r, userService)
+		api.UsersHandler(w, r, userService)
 	})
 	mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-		localhttp.UserHandler(w, r, userService)
+		api.UserHandler(w, r, userService)
 	})
 	return mux
 }
