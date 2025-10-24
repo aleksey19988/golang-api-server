@@ -1,6 +1,4 @@
 [![Go Tests](https://github.com/aleksey19988/golang-api-server/actions/workflows/go-test.yml/badge.svg)](https://github.com/aleksey19988/golang-api-server/actions/workflows/go-test.yml)
-
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=aleksey19988_golang-api-server&metric=coverage)](https://sonarcloud.io/summary/new_code?id=aleksey19988_golang-api-server)
 # Golang API Server
 
 Простой API-сервер на Go.
