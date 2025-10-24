@@ -81,7 +81,7 @@ func TestHandler_GetUserSuccess(t *testing.T) {
 	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code == http.StatusOK {
+	if w.Code != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", w.Code, http.StatusOK)
 	}
 	var gotUser domain.User
