@@ -23,6 +23,10 @@ jobs:
       - name: Download dependencies
         run: go mod tidy
 
-      - name: Run tests in internal/api
+      - name: Run tests with coverage
         working-directory: internal/api
-        run: go test -v ./...
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: Display coverage
+        working-directory: internal/api
+        run: go tool cover -func=coverage.out
