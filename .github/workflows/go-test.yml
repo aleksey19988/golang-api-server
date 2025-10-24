@@ -1,10 +1,9 @@
-name: Go Tests
+name: Run Tests
 
 on:
   push:
     branches:
       - main
-      - 'feature/**'  # или другие ветки для запуска
   pull_request:
 
 jobs:
@@ -12,27 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Go environment
+      - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.25  # укажите вашу версию Go
+          go-version: 1.25
 
       - name: Download dependencies
         run: go mod tidy
 
-      - name: Run tests with coverage
+      - name: Run tests
         working-directory: internal/api
-        run: go test -coverprofile=coverage.out ./...
-
-      - name: Display coverage
-        working-directory: internal/api
-        run: go tool cover -func=coverage.out
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v1.8
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # секрет в GitHub
-          SONAR_ORGANIZATION: aleksey19988
+        run: go test -v ./...
