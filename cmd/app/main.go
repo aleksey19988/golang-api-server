@@ -7,12 +7,23 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"log"
 	"os"
 )
 
 const defaultPort = ":8080"
 
+// @title           Example user API
+// @version         1.0
+// @description     Это учебный проект для практики написания на Go
+
+// @contact.name   Aleksey Kononenko
+// @contact.email  a.knnnk@mail.ru
+
+// @host      localhost:8080
+// @BasePath  /
 func main() {
 	r := gin.Default()
 
@@ -26,12 +37,14 @@ func main() {
 	handler := api.NewHandler(s)
 
 	r.GET("/ping", handler.PingHandler)
-	r.GET("/user/:id", handler.GetUserHandler)
-	r.POST("/user", handler.CreateUserHandler)
-	r.PATCH("/user/:id", handler.UpdateUserHandler)
-	r.DELETE("/user/:id", handler.DeleteUserHandler)
+	r.GET("/user/:id", handler.GetUser)
+	r.POST("/user", handler.CreateUser)
+	r.PATCH("/user/:id", handler.UpdateUser)
+	r.DELETE("/user/:id", handler.DeleteUser)
 
-	r.GET("/users", handler.GetUsersHandler)
+	r.GET("/users", handler.GetUsers)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	port := os.Getenv("PORT")
 	if port == "" {
