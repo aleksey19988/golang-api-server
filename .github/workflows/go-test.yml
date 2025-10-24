@@ -1,0 +1,25 @@
+name: Go Tests
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'  # или другие ветки для запуска
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20  # укажите вашу версию Go
+
+      - name: Run tests in internal/api
+        working-directory: internal/api
+        run: go test -v ./...
