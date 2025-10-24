@@ -18,7 +18,10 @@ jobs:
       - name: Set up Go environment
         uses: actions/setup-go@v4
         with:
-          go-version: 1.20  # укажите вашу версию Go
+          go-version: 1.25  # укажите вашу версию Go
+
+      - name: Download dependencies
+        run: go mod tidy
 
       - name: Run tests in internal/api
         working-directory: internal/api
