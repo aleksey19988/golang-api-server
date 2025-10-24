@@ -30,3 +30,9 @@ jobs:
       - name: Display coverage
         working-directory: internal/api
         run: go tool cover -func=coverage.out
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v1.8
+        with:
+          organization: aleksey19988
+          token: 8294af5f570a284a18b1916cb73eeaaf2b3b72ad
