@@ -1,3 +1,5 @@
+[![Go Tests](https://github.com/aleksey19988/golang-api-server/actions/workflows/go-test.yml/badge.svg)](https://github.com/aleksey19988/golang-api-server/actions/workflows/go-test.yml)
+
 # Golang API Server
 
 Простой API-сервер на Go.
