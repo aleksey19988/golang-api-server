@@ -36,7 +36,7 @@ func main() {
 	s := service.NewUserService(repo)
 	handler := api.NewHandler(s)
 
-	r.GET("/ping", handler.PingHandler)
+	r.GET("/ping", handler.Ping)
 	r.GET("/user/:id", handler.GetUser)
 	r.POST("/user", handler.CreateUser)
 	r.PATCH("/user/:id", handler.UpdateUser)

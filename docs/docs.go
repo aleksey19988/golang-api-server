@@ -18,6 +18,25 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/ping": {
+            "get": {
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "ping"
+                ],
+                "summary": "Проверка соединения",
+                "responses": {
+                    "200": {
+                        "description": "pong",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "post": {
                 "consumes": [

@@ -37,6 +37,18 @@ info:
   title: Example user API
   version: "1.0"
 paths:
+  /ping:
+    get:
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: Проверка соединения
+      tags:
+      - ping
   /user:
     post:
       consumes:
