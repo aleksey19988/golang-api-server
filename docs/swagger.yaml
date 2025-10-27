@@ -3,9 +3,16 @@ definitions:
   api.CreateUserRequest:
     properties:
       age:
+        minimum: 14
         type: integer
+      email:
+        type: string
       name:
         type: string
+    required:
+    - age
+    - email
+    - name
     type: object
   api.ErrorResponse:
     properties:
@@ -15,6 +22,7 @@ definitions:
   api.UpdateUserRequest:
     properties:
       age:
+        minimum: 14
         type: integer
       name:
         type: string
@@ -23,10 +31,26 @@ definitions:
     properties:
       age:
         type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
       id:
         type: integer
       name:
         type: string
+      updatedAt:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
     type: object
 host: localhost:8080
 info:
@@ -43,7 +67,7 @@ paths:
       - text/html
       responses:
         "200":
-          description: pong
+          description: ok
           schema:
             type: string
       summary: Проверка соединения
@@ -63,16 +87,12 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/domain.User'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/api.ErrorResponse'
         "500":

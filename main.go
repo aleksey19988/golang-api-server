@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "api_server/docs"
 	"api_server/internal/api"
 	"api_server/internal/repository/memory"
 	"api_server/internal/service"
@@ -32,7 +33,6 @@ func main() {
 	r.DELETE("/user/:id", handler.DeleteUser)
 
 	r.GET("/users", handler.GetUsers)
-
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	err := r.Run(":8085")

@@ -29,7 +29,7 @@ const docTemplate = `{
                 "summary": "Проверка соединения",
                 "responses": {
                     "200": {
-                        "description": "pong",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -61,20 +61,14 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/domain.User"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/api.ErrorResponse"
                         }
@@ -260,9 +254,18 @@ const docTemplate = `{
     "definitions": {
         "api.CreateUserRequest": {
             "type": "object",
+            "required": [
+                "age",
+                "email",
+                "name"
+            ],
             "properties": {
                 "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 14
+                },
+                "email": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -281,7 +284,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 14
                 },
                 "name": {
                     "type": "string"
@@ -294,11 +298,35 @@ const docTemplate = `{
                 "age": {
                     "type": "integer"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "email": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
                     "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         }
