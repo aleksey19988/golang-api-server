@@ -5,6 +5,7 @@ import (
 	"api_server/internal/repository/memory"
 	"api_server/internal/service"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/http/httptest"
@@ -13,19 +14,22 @@ import (
 )
 
 var (
-	repo    = memory.NewMockMemoryUserRepository()
-	svc     = service.NewUserService(repo)
-	handler = func(s *service.UserService) *Handler {
+	testUsersCount = 3
+	repo           = memory.NewMockMemoryUserRepository()
+	svc            = service.NewUserService(repo)
+	handler        = func(s *service.UserService) *Handler {
 		h := &Handler{
 			userService: s,
 		}
-		_, err := h.userService.CreateUser("Test name 1", "test_1@example.com", 25)
-		if err != nil {
-			panic(err)
-		}
-		_, err = h.userService.CreateUser("Test name 2", "test_2@example.com", 50)
-		if err != nil {
-			panic(err)
+		for i := 1; i <= testUsersCount; i++ {
+			_, err := h.userService.CreateUser(
+				fmt.Sprintf("Test name %d", i),
+				fmt.Sprintf("test_%d@example.com", i),
+				uint(25*i),
+			)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		return h
@@ -99,7 +103,7 @@ func TestHandler_GetUsers(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error unmarshalling response body: %v", err)
 	}
-	if len(gotUsers) != 2 {
+	if len(gotUsers) != testUsersCount {
 		t.Errorf("handler returned wrong number of users: got %v want %v", len(gotUsers), 1)
 	}
 
@@ -177,7 +181,7 @@ func TestHandler_CreateUserSuccess(t *testing.T) {
 	// Успешное создание пользователя
 	r := gin.Default()
 	r.POST("/user", handler.CreateUser)
-	jsonBody := `{"name": "Test Name 3", "age": 75, "email": "test_3@example.com"}`
+	jsonBody := `{"name": "Test Name 4", "age": 100, "email": "test_4@example.com"}`
 	req, err := http.NewRequest(http.MethodPost, "/user", strings.NewReader(jsonBody))
 	if err != nil {
 		t.Errorf("Error creating request: %v", err)
@@ -193,9 +197,9 @@ func TestHandler_CreateUserSuccess(t *testing.T) {
 		t.Errorf("Error unmarshalling response body: %v", err)
 	}
 	wantUser := domain.User{
-		Name:  "Test Name 3",
-		Age:   75,
-		Email: "test_3@example.com",
+		Name:  "Test Name 4",
+		Age:   100,
+		Email: "test_4@example.com",
 	}
 	if gotUser.Name != wantUser.Name || gotUser.Email != wantUser.Email || gotUser.Age != wantUser.Age {
 		t.Errorf("handler returned unexpected body: got %v want %v", gotUser, wantUser)
