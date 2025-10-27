@@ -4,16 +4,10 @@ import (
 	"api_server/internal/api"
 	"api_server/internal/repository/memory"
 	"api_server/internal/service"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
-	"log"
-	"os"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
-
-const defaultPort = ":8080"
 
 // @title           Example user API
 // @version         1.0
@@ -27,12 +21,7 @@ const defaultPort = ":8080"
 func main() {
 	r := gin.Default()
 
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file: ", err.Error())
-	}
-
-	repo := memory.NewMemoryUserRepository()
+	repo := memory.NewUserRepository()
 	s := service.NewUserService(repo)
 	handler := api.NewHandler(s)
 
@@ -46,13 +35,7 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		fmt.Printf("$port is not set\n")
-		port = defaultPort
-	}
-
-	err = r.Run(port)
+	err := r.Run(":8085")
 	if err != nil {
 		panic(err)
 	}

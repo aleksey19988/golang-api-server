@@ -1,7 +1,10 @@
 package domain
 
+import "gorm.io/gorm"
+
 type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Age  int    `json:"age"`
+	gorm.Model
+	Name  string `json:"name"  gorm:"not null;size(255)"`
+	Age   uint   `json:"age"   gorm:"not null;default:0"`
+	Email string `json:"email" gorm:"uniqueIndex;type:varchar(255)"`
 }

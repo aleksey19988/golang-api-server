@@ -315,8 +315,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "Это учебный проект для практики написания на Go",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
 }
 
 func init() {

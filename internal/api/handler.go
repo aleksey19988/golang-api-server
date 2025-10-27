@@ -15,12 +15,13 @@ type Handler struct {
 
 type UpdateUserRequest struct {
 	Name string `json:"name"`
-	Age  int    `json:"age" validate:"min=14"`
+	Age  uint   `json:"age" validate:"min=14"`
 }
 
 type CreateUserRequest struct {
-	Name string `json:"name" validate:"required"`
-	Age  int    `json:"age" validate:"required,min=14"`
+	Name  string `json:"name" validate:"required"`
+	Age   uint   `json:"age" validate:"required,min=14"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type ErrorResponse struct {
@@ -91,7 +92,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	u, err := h.userService.CreateUser(request.Name, request.Age)
+	u, err := h.userService.CreateUser(request.Name, request.Email, request.Age)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -139,7 +140,7 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 		userAge = request.Age
 	}
 
-	updatedUser, err := h.userService.UpdateUser(user.ID, userName, userAge)
+	updatedUser, err := h.userService.UpdateUser(user.Model.ID, userName, userAge)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -165,13 +166,9 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err := h.userService.GetUserByID(id)
-	if err != nil {
+	_, err = h.userService.GetUserByID(id)
+	if err != nil && errors.Is(err, service.ErrNotFound) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	if user == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
 	err = h.userService.DeleteUser(id)
@@ -189,15 +186,20 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 // @Success      200  {object}  []domain.User
 // @Router       /users [get]
 func (h *Handler) GetUsers(c *gin.Context) {
-	users := h.userService.GetUsers()
+	users, err := h.userService.GetUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, users)
 }
 
-func (h *Handler) ParseUserId(idStr string) (int, error) {
+func (h *Handler) ParseUserId(idStr string) (uint, error) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return 0, err
 	}
 
-	return id, nil
+	return uint(id), nil
 }

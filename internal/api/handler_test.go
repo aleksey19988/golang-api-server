@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -16,19 +15,32 @@ import (
 var (
 	repo    = memory.NewMockMemoryUserRepository()
 	svc     = service.NewUserService(repo)
-	handler = NewHandler(svc)
+	handler = func(s *service.UserService) *Handler {
+		h := &Handler{
+			userService: s,
+		}
+		_, err := h.userService.CreateUser("Test name 1", "test_1@example.com", 25)
+		if err != nil {
+			panic(err)
+		}
+		_, err = h.userService.CreateUser("Test name 2", "test_2@example.com", 50)
+		if err != nil {
+			panic(err)
+		}
+
+		return h
+	}(svc)
 )
 
 func TestHandler_ParseUserId(t *testing.T) {
 	h := &Handler{}
 	tests := []struct {
 		input       string
-		expected    int
+		expected    uint
 		expectError bool
 	}{
 		{"123", 123, false},
 		{"0", 0, false},
-		{"-10", -10, false},
 		{"abc", 0, true},
 		{"", 0, true},
 	}
@@ -64,9 +76,42 @@ func TestHandler_Ping(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", w.Code, http.StatusOK)
 	}
 
-	// Проверяем тето ответа
+	// Проверяем тело ответа
 	if w.Body.String() != "pong" {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), "pong")
+	}
+}
+
+func TestHandler_GetUsers(t *testing.T) {
+	r := gin.Default()
+	r.GET("/users", handler.GetUsers)
+	req, err := http.NewRequest(http.MethodGet, "/users", nil)
+	if err != nil {
+		t.Errorf("Error creating request: %v", err)
+	}
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", w.Code, http.StatusOK)
+	}
+	var gotUsers []domain.User
+	err = json.Unmarshal(w.Body.Bytes(), &gotUsers)
+	if err != nil {
+		t.Errorf("Error unmarshalling response body: %v", err)
+	}
+	if len(gotUsers) != 2 {
+		t.Errorf("handler returned wrong number of users: got %v want %v", len(gotUsers), 1)
+	}
+
+	gotUser := gotUsers[0]
+	wantUser := domain.User{
+		Name:  "Test name 1",
+		Age:   25,
+		Email: "test_1@example.com",
+	}
+
+	if gotUser.Name != wantUser.Name || gotUser.Email != wantUser.Email || gotUser.Age != wantUser.Age {
+		t.Errorf("handler returned unexpected body: got %v want %v", gotUser, wantUser)
 	}
 }
 
@@ -90,11 +135,11 @@ func TestHandler_GetUserSuccess(t *testing.T) {
 		t.Errorf("Error unmarshalling response body: %v", err)
 	}
 	wantUser := domain.User{
-		ID:   1,
-		Name: "Алексей",
-		Age:  27,
+		Name:  "Test name 1",
+		Age:   25,
+		Email: "test_1@example.com",
 	}
-	if !reflect.DeepEqual(gotUser, wantUser) {
+	if gotUser.Name != wantUser.Name || gotUser.Email != wantUser.Email || gotUser.Age != wantUser.Age {
 		t.Errorf("handler returned unexpected body: got %v want %v", gotUser, wantUser)
 	}
 }
@@ -132,7 +177,7 @@ func TestHandler_CreateUserSuccess(t *testing.T) {
 	// Успешное создание пользователя
 	r := gin.Default()
 	r.POST("/user", handler.CreateUser)
-	jsonBody := `{"name": "Test Name", "age": 95}`
+	jsonBody := `{"name": "Test Name 3", "age": 75, "email": "test_3@example.com"}`
 	req, err := http.NewRequest(http.MethodPost, "/user", strings.NewReader(jsonBody))
 	if err != nil {
 		t.Errorf("Error creating request: %v", err)
@@ -148,11 +193,11 @@ func TestHandler_CreateUserSuccess(t *testing.T) {
 		t.Errorf("Error unmarshalling response body: %v", err)
 	}
 	wantUser := domain.User{
-		ID:   3,
-		Name: "Test Name",
-		Age:  95,
+		Name:  "Test Name 3",
+		Age:   75,
+		Email: "test_3@example.com",
 	}
-	if !reflect.DeepEqual(gotUser, wantUser) {
+	if gotUser.Name != wantUser.Name || gotUser.Email != wantUser.Email || gotUser.Age != wantUser.Age {
 		t.Errorf("handler returned unexpected body: got %v want %v", gotUser, wantUser)
 	}
 }
@@ -208,11 +253,11 @@ func TestHandler_UpdateUserName(t *testing.T) {
 		t.Errorf("Error unmarshalling response body: %v", err)
 	}
 	wantUser := domain.User{
-		ID:   2,
-		Name: "Updated test Name",
-		Age:  23,
+		Name:  "Updated test Name",
+		Age:   50,
+		Email: "test_2@example.com",
 	}
-	if !reflect.DeepEqual(gotUser, wantUser) {
+	if gotUser.Name != wantUser.Name || gotUser.Email != wantUser.Email || gotUser.Age != wantUser.Age {
 		t.Errorf("handler returned unexpected body: got %v want %v", gotUser, wantUser)
 	}
 }
@@ -236,11 +281,25 @@ func TestHandler_UpdateUserAge(t *testing.T) {
 		t.Errorf("Error unmarshalling response body: %v", err)
 	}
 	wantUser := domain.User{
-		ID:   1,
-		Name: "Алексей",
-		Age:  20,
+		Name:  "Test name 1",
+		Age:   20,
+		Email: "test_1@example.com",
 	}
-	if !reflect.DeepEqual(gotUser, wantUser) {
+	if gotUser.Name != wantUser.Name || gotUser.Email != wantUser.Email || gotUser.Age != wantUser.Age {
 		t.Errorf("handler returned unexpected body: got %v want %v", gotUser, wantUser)
+	}
+}
+
+func TestHandler_DeleteUser(t *testing.T) {
+	r := gin.Default()
+	r.DELETE("/user/:id", handler.DeleteUser)
+	req, err := http.NewRequest(http.MethodDelete, "/user/1", nil)
+	if err != nil {
+		t.Errorf("Error creating request: %v", err)
+	}
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", w.Code, http.StatusOK)
 	}
 }
