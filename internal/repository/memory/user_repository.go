@@ -2,10 +2,10 @@ package memory
 
 import (
 	"api_server/internal/domain"
+	"api_server/internal/repository"
 	"api_server/internal/service"
 	"context"
 	"errors"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -15,22 +15,25 @@ type UserRepository struct {
 	users []domain.User
 }
 
-func NewUserRepository() *UserRepository {
-	dsn := "host=localhost user=postgres dbname=golang_api password=KrA2/xW/ sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
+func NewUserRepository(config *repository.Database) (*UserRepository, error) {
+	err := config.ValidateConfig()
+	if err == nil {
+		db, err := config.Connect()
+		if err != nil {
+			panic("failed to connect database")
+		}
 
-	err = db.AutoMigrate(&domain.User{})
-	if err != nil {
-		panic(err)
-	}
+		err = db.AutoMigrate(&domain.User{})
+		if err != nil {
+			panic(err)
+		}
 
-	return &UserRepository{
-		db:  db,
-		ctx: context.Background(),
+		return &UserRepository{
+			db:  db,
+			ctx: context.Background(),
+		}, nil
 	}
+	return nil, err
 }
 func (r *UserRepository) GetAll() ([]domain.User, error) {
 	users, err := gorm.G[domain.User](r.db).Find(r.ctx)
